@@ -7,80 +7,82 @@ use Illuminate\Support\Facades\Storage;
 
 class HelloWorldController extends Controller
 {
-    /**
-     * Lista todos los ficheros de la carpeta storage/app.
-     *
-     * @return JsonResponse La respuesta en formato JSON.
-     *
-     * El JSON devuelto debe tener las siguientes claves:
-     * - mensaje: Un mensaje indicando el resultado de la operación.
-     * - contenido: Un array con los nombres de los ficheros.
-     */
+    // Listado de archivos
     public function index()
     {
-        //todo
+        $files = Storage::files(); // Obtiene todos los archivos en el disco local
+        return response()->json([
+            'mensaje' => 'Listado de ficheros',
+            'contenido' => $files,
+        ], 200);
     }
 
-     /**
-     * Recibe por parámetro el nombre de fichero y el contenido. Devuelve un JSON con el resultado de la operación.
-     * Si el fichero ya existe, devuelve un 409.
-     *
-     * @param filename Parámetro con el nombre del fichero. Devuelve 422 si no hay parámetro.
-     * @param content Contenido del fichero. Devuelve 422 si no hay parámetro.
-     * @return JsonResponse La respuesta en formato JSON.
-     *
-     * El JSON devuelto debe tener las siguientes claves:
-     * - mensaje: Un mensaje indicando el resultado de la operación.
-     */
+    // Almacenar archivo
     public function store(Request $request)
     {
-        //todo
+        $filename = $request->input('filename');
+        $content = $request->input('content');
+
+        if (Storage::exists($filename)) {
+            return response()->json([
+                'mensaje' => 'El archivo ya existe',
+            ], 409); // Conflicto, el archivo ya existe
+        }
+
+        Storage::put($filename, $content);
+
+        return response()->json([
+            'mensaje' => 'Guardado con éxito',
+        ], 200);
     }
 
-     /**
-     * Recibe por parámetro el nombre de fichero y devuelve un JSON con su contenido
-     *
-     * @param name Parámetro con el nombre del fichero.
-     * @return JsonResponse La respuesta en formato JSON.
-     *
-     * El JSON devuelto debe tener las siguientes claves:
-     * - mensaje: Un mensaje indicando el resultado de la operación.
-     * - contenido: El contenido del fichero si se ha leído con éxito.
-     */
-    public function show(string $filename)
+    // Mostrar archivo
+    public function show($filename)
     {
-        //todo
+        if (!Storage::exists($filename)) {
+            return response()->json([
+                'mensaje' => 'Archivo no encontrado',
+            ], 404); // No encontrado
+        }
+
+        $content = Storage::get($filename);
+
+        return response()->json([
+            'mensaje' => 'Archivo leído con éxito',
+            'contenido' => $content,
+        ], 200);
     }
 
-    /**
-     * Recibe por parámetro el nombre de fichero, el contenido y actualiza el fichero.
-     * Devuelve un JSON con el resultado de la operación.
-     * Si el fichero no existe devuelve un 404.
-     *
-     * @param filename Parámetro con el nombre del fichero. Devuelve 422 si no hay parámetro.
-     * @param content Contenido del fichero. Devuelve 422 si no hay parámetro.
-     * @return JsonResponse La respuesta en formato JSON.
-     *
-     * El JSON devuelto debe tener las siguientes claves:
-     * - mensaje: Un mensaje indicando el resultado de la operación.
-     */
-    public function update(Request $request, string $filename)
+    // Actualizar archivo
+    public function update(Request $request, $filename)
     {
-        //todo
+        if (!Storage::exists($filename)) {
+            return response()->json([
+                'mensaje' => 'El archivo no existe',
+            ], 404); // No encontrado
+        }
+
+        $content = $request->input('content');
+        Storage::put($filename, $content);
+
+        return response()->json([
+            'mensaje' => 'Actualizado con éxito',
+        ], 200);
     }
 
-    /**
-     * Recibe por parámetro el nombre de ficher y lo elimina.
-     * Si el fichero no existe devuelve un 404.
-     *
-     * @param filename Parámetro con el nombre del fichero. Devuelve 422 si no hay parámetro.
-     * @return JsonResponse La respuesta en formato JSON.
-     *
-     * El JSON devuelto debe tener las siguientes claves:
-     * - mensaje: Un mensaje indicando el resultado de la operación.
-     */
-    public function destroy(string $filename)
+    // Eliminar archivo
+    public function destroy($filename)
     {
-        //todo
+        if (!Storage::exists($filename)) {
+            return response()->json([
+                'mensaje' => 'El archivo no existe',
+            ], 404); // No encontrado
+        }
+
+        Storage::delete($filename);
+
+        return response()->json([
+            'mensaje' => 'Eliminado con éxito',
+        ], 200);
     }
 }
